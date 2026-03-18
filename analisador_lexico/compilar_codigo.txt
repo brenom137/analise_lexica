@@ -1,2 +1,1 @@
-javac src/compilador/*.java src/compilador/lexico/*.java
-java -cp src compilador.App
+javac -d bin src/compilador/*.java src/compilador/lexico/*.java
