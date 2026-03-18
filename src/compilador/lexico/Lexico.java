@@ -283,13 +283,4 @@ public class Lexico {
         }
         return null;
     }
-
-    // Compatibilidade com nomes usados em outras versoes.
-    public Token getNexToken() {
-        return getNextToken();
-    }
-
-    public Token proximoToken() {
-        return getNextToken();
-    }
 }
