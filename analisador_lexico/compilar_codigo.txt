@@ -1,0 +1,2 @@
+javac src/compilador/*.java src/compilador/lexico/*.java
+java -cp src compilador.App
