@@ -1,1 +1,7 @@
+compilar
+
 javac -d bin src/compilador/*.java src/compilador/lexico/*.java
+
+rodar
+
+java -cp bin compilador.App

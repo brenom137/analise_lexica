@@ -16,10 +16,10 @@ public class Lexico {
     private static final List<String> palavrasReservadas = Arrays.asList(
             "const", "type", "var", "begin", "end", "while", "do", "for", "downto", "if", "then", "else", "case",
             "of", "array", "function", "procedure", "label", "record", "exit", "break", "continue", "and", "or",
-            "not", "integer", "program", "write", "writeln", "read", "repeat", "until"
-    );
+            "not", "integer", "program", "write", "writeln", "read", "repeat", "until", "to");
     private int linha;
     private int coluna;
+    private static final char EOF_CHAR = (char) 65535;
 
     public Lexico(String nomeArquivo) {
         this.nomeArquivo = nomeArquivo;
@@ -35,20 +35,34 @@ public class Lexico {
         }
     }
 
+    private void avanca() throws IOException {
+        caractere = (char) br.read();
+        coluna++;
+    }
+
+    private void avancaComNewline() throws IOException {
+        if (caractere == '\n') {
+            linha++;
+            coluna = 1;
+            caractere = (char) br.read();
+        } else {
+            avanca();
+        }
+    }
+
     public Token getNextToken() {
         StringBuilder lexema;
         Token token;
 
         try {
-            while (caractere != 65535) { // EOF
+            while (caractere != EOF_CHAR) {
                 lexema = new StringBuilder();
                 token = new Token(linha, coluna);
 
                 if (Character.isDigit(caractere)) {
                     while (Character.isDigit(caractere)) {
                         lexema.append(caractere);
-                        caractere = (char) br.read();
-                        coluna++;
+                        avanca();
                     }
                     token.setClasse(ClasseToken.Inteiro);
                     token.setValor(new ValorToken(Integer.parseInt(lexema.toString())));
@@ -56,8 +70,7 @@ public class Lexico {
                 } else if (Character.isAlphabetic(caractere)) {
                     while (Character.isAlphabetic(caractere) || Character.isDigit(caractere)) {
                         lexema.append(caractere);
-                        caractere = (char) br.read();
-                        coluna++;
+                        avanca();
                     }
                     if (palavrasReservadas.contains(lexema.toString().toLowerCase())) {
                         token.setClasse(ClasseToken.PalavraReservada);
@@ -66,187 +79,124 @@ public class Lexico {
                     }
                     token.setValor(new ValorToken(lexema.toString().toLowerCase()));
                     return token;
-                } else if (caractere == ' ' || caractere == '\t') {
-                    caractere = (char) br.read();
-                    coluna++;
-                } else if (caractere == '\r') {
-                    caractere = (char) br.read();
-                    if (caractere == '\n') {
-                        caractere = (char) br.read();
-                        linha++;
-                        coluna = 1;
-                    }
+                } else if (caractere == ' ' || caractere == '\t' || caractere == '\r') {
+                    avanca();
                 } else if (caractere == '\n') {
-                    caractere = (char) br.read();
                     linha++;
                     coluna = 1;
-                }
-
-                else if (caractere == '+') {
                     caractere = (char) br.read();
-                    coluna++;
+                } else if (caractere == '+') {
+                    avanca();
                     token.setClasse(ClasseToken.Mais);
                     return token;
-                }
-
-                else if (caractere == '-') {
-                    caractere = (char) br.read();
-                    coluna++;
+                } else if (caractere == '-') {
+                    avanca();
                     token.setClasse(ClasseToken.Menos);
                     return token;
-                }
-
-                else if (caractere == '/') {
-                    caractere = (char) br.read();
-
+                } else if (caractere == '/') {
+                    avanca();
                     if (caractere == '/') {
-                        caractere = (char) br.read();
-                        while (caractere != '\r') {
-                            caractere = (char) br.read();
-                            if (caractere == '\n') {
-                                caractere = (char) br.read();
-                                linha++;
-                                coluna = 1;
-                                break;
-                            } else if (caractere == 65535) {
-                                break;
-                            }
+                        while (caractere != '\n' && caractere != EOF_CHAR) {
+                            avanca();
                         }
                     } else {
-                        coluna++;
                         token.setClasse(ClasseToken.Divisao);
                         return token;
                     }
-                }
-
-                else if (caractere == '=') {
-                    caractere = (char) br.read();
-                    coluna++;
+                } else if (caractere == '=') {
+                    avanca();
                     token.setClasse(ClasseToken.Igualdade);
                     return token;
-                }
-
-                else if (caractere == ':') {
-                    caractere = (char) br.read();
-                    coluna++;
+                } else if (caractere == ':') {
+                    avanca();
                     if (caractere == '=') {
-                        caractere = (char) br.read();
-                        coluna++;
+                        avanca();
                         token.setClasse(ClasseToken.Atribuicao);
-                        return token;
                     } else {
                         token.setClasse(ClasseToken.DoisPontos);
-                        return token;
                     }
-                }
-
-                else if (caractere == '>') {
-                    caractere = (char) br.read();
-                    coluna++;
+                    return token;
+                } else if (caractere == '>') {
+                    avanca();
                     if (caractere == '=') {
-                        caractere = (char) br.read();
-                        coluna++;
+                        avanca();
                         token.setClasse(ClasseToken.MaiorIgual);
-                        return token;
                     } else {
                         token.setClasse(ClasseToken.Maior);
-                        return token;
                     }
-                }
-
-                else if (caractere == '<') {
-                    caractere = (char) br.read();
-                    coluna++;
+                    return token;
+                } else if (caractere == '<') {
+                    avanca();
                     if (caractere == '=') {
-                        caractere = (char) br.read();
-                        coluna++;
+                        avanca();
                         token.setClasse(ClasseToken.MenorIgual);
-                        return token;
                     } else if (caractere == '>') {
-                        caractere = (char) br.read();
-                        coluna++;
+                        avanca();
                         token.setClasse(ClasseToken.Diferente);
-                        return token;
                     } else {
                         token.setClasse(ClasseToken.Menor);
-                        return token;
                     }
-                }
-
-                else if (caractere == ';') {
-                    caractere = (char) br.read();
-                    coluna++;
+                    return token;
+                } else if (caractere == ';') {
+                    avanca();
                     token.setClasse(ClasseToken.PontoVirgula);
                     return token;
-                }
-
-                else if (caractere == ',') {
-                    caractere = (char) br.read();
-                    coluna++;
+                } else if (caractere == ',') {
+                    avanca();
                     token.setClasse(ClasseToken.Virgula);
                     return token;
-                }
-
-                else if (caractere == '(') {
-                    caractere = (char) br.read();
-                    coluna++;
-                    token.setClasse(ClasseToken.AbreParenteses);
-                    return token;
-                }
-
-                else if (caractere == ')') {
-                    caractere = (char) br.read();
-                    coluna++;
-                    token.setClasse(ClasseToken.FechaParenteses);
-                    return token;
-                }
-
-                else if (caractere == '.') {
-                    caractere = (char) br.read();
-                    coluna++;
-                    token.setClasse(ClasseToken.Ponto);
-                    return token;
-                }
-
-                else if (caractere == '*') {
-                    caractere = (char) br.read();
-                    coluna++;
-                    token.setClasse(ClasseToken.Multiplicacao);
-                    return token;
-                }
-
-                else if (caractere == '{') {
-                    caractere = (char) br.read();
-
-                    while (caractere != '}') {
-                        caractere = (char) br.read();
-
-                        if (caractere == '\r') {
-                            caractere = (char) br.read();
-                            if (caractere == '\n') {
-                                linha++;
-                                coluna = 1;
-                                caractere = (char) br.read();
+                } else if (caractere == '(') {
+                    avanca();
+                    if (caractere == '*') {
+                        avanca();
+                        while (true) {
+                            if (caractere == EOF_CHAR) {
+                                System.out.println("Erro lexico faltou fechar comentario (*\nLinha: " + linha
+                                        + "\nColuna: " + coluna);
+                                System.exit(1);
+                            }
+                            if (caractere == '*') {
+                                avanca();
+                                if (caractere == ')') {
+                                    avanca();
+                                    break;
+                                }
+                            } else {
+                                avancaComNewline();
                             }
                         }
-
-                        if (caractere == '}') {
-                            caractere = (char) br.read();
-                            break;
-                        } else if (caractere == 65535) {
-                            System.out.println("Erro lexico faltou fechar comentario }\nLinha: " + linha + "\nColuna: " + coluna);
+                    } else {
+                        token.setClasse(ClasseToken.AbreParenteses);
+                        return token;
+                    }
+                } else if (caractere == ')') {
+                    avanca();
+                    token.setClasse(ClasseToken.FechaParenteses);
+                    return token;
+                } else if (caractere == '.') {
+                    avanca();
+                    token.setClasse(ClasseToken.Ponto);
+                    return token;
+                } else if (caractere == '*') {
+                    avanca();
+                    token.setClasse(ClasseToken.Multiplicacao);
+                    return token;
+                } else if (caractere == '{') {
+                    avanca();
+                    while (caractere != '}') {
+                        if (caractere == EOF_CHAR) {
+                            System.out.println(
+                                    "Erro lexico faltou fechar comentario }\nLinha: " + linha + "\nColuna: " + coluna);
                             System.exit(1);
                         }
+                        avancaComNewline();
                     }
-                }
-
-                else if (caractere == '\'') {
-                    caractere = (char) br.read();
-                    coluna++;
+                    avanca();
+                } else if (caractere == '\'') {
+                    avanca();
                     while (caractere != '\'') {
                         lexema.append(caractere);
-                        caractere = (char) br.read();
-                        coluna++;
+                        avanca();
 
                         if (caractere == 65535) {
                             System.out.println("Faltou fechar a string '\nLinha: " + linha + "\nColuna: " + coluna);
@@ -261,18 +211,14 @@ public class Lexico {
                             System.out.println("Faltou fechar a string '\nLinha: " + linha + "\nColuna: " + coluna);
                             System.exit(1);
                         } else if (caractere == '\'') {
-                            caractere = (char) br.read();
-                            coluna++;
+                            avanca();
                             token.setClasse(ClasseToken.String);
                             token.setValor(new ValorToken(lexema.toString()));
                             return token;
                         }
                     }
-                }
-
-                else {
-                    caractere = (char) br.read();
-                    coluna++;
+                } else {
+                    avanca();
                 }
             }
             token = new Token(linha, coluna);
