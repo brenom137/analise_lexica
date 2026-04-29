@@ -284,9 +284,9 @@ public class Sintatico {
             consumirPalavraReservada("for");
             consumir(ClasseToken.Identificador);
             consumir(ClasseToken.Atribuicao);
-            expressao();
+            expressao(false);
             consumirPalavraReservada("to");
-            expressao();
+            expressao(false);
             consumirPalavraReservada("do");
             consumirPalavraReservada("begin");
             sentencas();
@@ -322,14 +322,15 @@ public class Sintatico {
             pfalsa();
 
         } else if (token.getClasse() == ClasseToken.Identificador) {
-            Token idToken = token;
             consumir(ClasseToken.Identificador);
 
             if (token.getClasse() == ClasseToken.Atribuicao) {
                 consumir(ClasseToken.Atribuicao);
                 expressao();
-            } else {
+            } else if (token.getClasse() == ClasseToken.AbreParenteses) {
                 argumentos();
+            } else {
+                erro("esperado ':=' após o identificador, mas encontrou " + descricaoToken());
             }
 
         } else {
@@ -379,6 +380,15 @@ public class Sintatico {
                 || token.getClasse() == ClasseToken.MenorIgual || token.getClasse() == ClasseToken.Diferente;
     }
 
+    private boolean ehInicioExpressaoAritmetica() {
+        return token.getClasse() == ClasseToken.Identificador || token.getClasse() == ClasseToken.Inteiro
+                || token.getClasse() == ClasseToken.AbreParenteses;
+    }
+
+    private boolean ehInicioExpressaoLogica() {
+        return ehPalavra("not") || ehPalavra("true") || ehPalavra("false") || ehInicioExpressaoAritmetica();
+    }
+
     private boolean ehPalavra(String palavra) {
         return token.getClasse() == ClasseToken.PalavraReservada && token.getValor().getTexto().equals(palavra);
     }
@@ -391,13 +401,25 @@ public class Sintatico {
             consumir(ClasseToken.AbreParenteses);
             expressao_logica();
             consumir(ClasseToken.FechaParenteses);
+        } else if (ehPalavra("true")) {
+            consumirPalavraReservada("true");
+        } else if (ehPalavra("false")) {
+            consumirPalavraReservada("false");
         } else {
-            expressao();
-            if (ehOperadorRelacional()) {
-                consumir(token.getClasse());
-                expressao();
-            }
+            relacional();
         }
+    }
+
+    private void relacional() {
+        expressao(false);
+
+        if (!ehOperadorRelacional()) {
+            erro("esperado um operador relacional (=, >, >=, <, <= ou <>) após a expressão, mas encontrou "
+                    + descricaoToken());
+        }
+
+        consumir(token.getClasse());
+        expressao(false);
     }
 
     private void termo_logico() {
@@ -414,9 +436,17 @@ public class Sintatico {
             consumirPalavraReservada("or");
             termo_logico();
         }
+
+        if (ehInicioExpressaoLogica()) {
+            erro("faltou um operador logico (and ou or) entre expressoes, mas encontrou " + descricaoToken());
+        }
     }
 
     private void expressao() {
+        expressao(true);
+    }
+
+    private void expressao(boolean verificarFaltaOperador) {
         termo();
         while (token.getClasse() == ClasseToken.Mais || token.getClasse() == ClasseToken.Menos) {
             if (token.getClasse() == ClasseToken.Mais)
@@ -424,6 +454,10 @@ public class Sintatico {
             else
                 consumir(ClasseToken.Menos);
             termo();
+        }
+
+        if (verificarFaltaOperador && ehInicioExpressaoAritmetica()) {
+            erro("faltou um operador aritmetico (+, -, * ou /) entre termos, mas encontrou " + descricaoToken());
         }
     }
 

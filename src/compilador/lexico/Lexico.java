@@ -13,10 +13,10 @@ public class Lexico {
     private String nomeArquivo;
     private BufferedReader br;
     private char caractere;
-    private static final List<String> palavrasReservadas = Arrays.asList(
+        private static final List<String> palavrasReservadas = Arrays.asList(
             "const", "type", "var", "begin", "end", "while", "do", "for", "downto", "if", "then", "else", "case",
             "of", "array", "function", "procedure", "label", "record", "exit", "break", "continue", "and", "or",
-            "not", "integer", "program", "write", "writeln", "read", "repeat", "until", "to");
+            "not", "true", "false", "integer", "program", "write", "writeln", "read", "repeat", "until", "to");
     private int linha;
     private int coluna;
     private static final char EOF_CHAR = (char) 65535;
