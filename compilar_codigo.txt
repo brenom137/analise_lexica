@@ -1,6 +1,6 @@
 compilar
 
-javac -d bin src/compilador/*.java src/compilador/lexico/*.java
+javac -d bin src/compilador/*.java src/compilador/lexico/*.java src/compilador/sintatico/*.java
 
 rodar
 
