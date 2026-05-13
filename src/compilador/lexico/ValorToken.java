@@ -2,52 +2,36 @@ package compilador.lexico;
 
 public class ValorToken {
 
-    private int numeroInteiro;
-    private String textoLiteral;
+    private int inteiro;
+    private String texto;
 
     public ValorToken(int inteiro) {
-        this.numeroInteiro = inteiro;
+        this.inteiro = inteiro;
     }
 
     public ValorToken(String texto) {
-        this.textoLiteral = texto;
-    }
-
-    public int getNumeroInteiro() {
-        return numeroInteiro;
-    }
-
-    public void setNumeroInteiro(int numeroInteiro) {
-        this.numeroInteiro = numeroInteiro;
-    }
-
-    public String getTextoLiteral() {
-        return textoLiteral;
-    }
-    
-    public void setTextoLiteral(String textoLiteral) {
-        this.textoLiteral = textoLiteral;
+        this.texto = texto;
     }
 
     public int getInteiro() {
-        return getNumeroInteiro();
+        return inteiro;
     }
 
     public void setInteiro(int inteiro) {
-        setNumeroInteiro(inteiro);
+        this.inteiro = inteiro;
     }
 
     public String getTexto() {
-        return getTextoLiteral();
+        return texto;
     }
-    
+
     public void setTexto(String texto) {
-        setTextoLiteral(texto);
+        this.texto = texto;
     }
 
     @Override
     public String toString() {
-        return "ValorToken [" + ((textoLiteral != null) ? "texto=" + textoLiteral : "inteiro=" + numeroInteiro) + "]";
+        return "ValorToken [" + ((texto != null) ? "texto=" + texto : "inteiro=" + inteiro) + "]";
     }
-    
+
 }

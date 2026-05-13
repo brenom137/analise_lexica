@@ -229,4 +229,8 @@ public class Lexico {
         }
         return null;
     }
+
+    public Token getNexToken() {
+        return getNextToken();
+    }
 }
